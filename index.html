@@ -7,9 +7,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --primary-color: #40a7e3;
-            --secondary-color: #2b95d6;
-            --bg-color: #f5f5f5;
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --bg-color: #f8f9fa;
             --text-color: #333;
             --card-bg: #fff;
             --border-color: #ddd;
@@ -22,11 +22,20 @@
             --border-color: #444;
         }
 
+        .theme-modern {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+            --bg-color: #f1f5f9;
+            --text-color: #334155;
+            --card-bg: #fff;
+            --border-color: #e2e8f0;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
@@ -85,11 +94,10 @@
             padding: 10px 15px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 20px;
             cursor: pointer;
             white-space: nowrap;
             color: var(--text-color);
-            transition: all 0.2s ease;
         }
 
         .tab-btn.active {
@@ -123,14 +131,12 @@
             background: var(--card-bg);
             border-radius: 12px;
             padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.2s;
-            border: 1px solid var(--border-color);
         }
 
         .product:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
         }
 
         .product-image {
@@ -181,11 +187,6 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .buy-btn:hover {
-            background: var(--secondary-color);
         }
 
         .categories {
@@ -203,7 +204,6 @@
             border-radius: 20px;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.2s;
         }
 
         .category-btn.active {
@@ -220,7 +220,6 @@
             border-radius: 12px;
             margin-bottom: 15px;
             align-items: center;
-            border: 1px solid var(--border-color);
         }
 
         .cart-item-image {
@@ -286,7 +285,6 @@
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
-            border: 1px solid var(--border-color);
         }
 
         .admin-form {
@@ -294,7 +292,6 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid var(--border-color);
         }
 
         .form-group {
@@ -340,7 +337,6 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid var(--border-color);
         }
 
         .color-options {
@@ -402,7 +398,6 @@
             border-radius: 12px;
             padding: 15px;
             text-align: center;
-            border: 1px solid var(--border-color);
         }
 
         .stat-number {
@@ -411,45 +406,25 @@
             color: var(--primary-color);
         }
 
-        .image-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            font-size: 12px;
-            text-align: center;
-            padding: 10px;
+        .animated {
+            animation: slideIn 0.5s ease;
         }
 
-        .notification {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: #4caf50;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: none;
-            max-width: 300px;
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="notification" id="notification"></div>
-    
     <div class="container">
         <header>
             <h1>Мой магазин</h1>
             <div class="user-info">
                 <div class="user-avatar" id="user-avatar">👤</div>
                 <div class="user-details">
-                    <div id="user-name">Загрузка...</div>
-                    <div id="user-id">ID: ...</div>
+                    <div id="user-name">Пользователь</div>
+                    <div id="user-id">ID: 000000</div>
                 </div>
             </div>
         </header>
@@ -499,8 +474,8 @@
                     <div>Товаров</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="orders-count">0</div>
-                    <div>Заказов</div>
+                    <div class="stat-number" id="visitors-count">0</div>
+                    <div>Посетителей</div>
                 </div>
             </div>
 
@@ -533,11 +508,6 @@
             <div id="admin-products">
                 <!-- Товары для администрирования будут загружены здесь -->
             </div>
-
-            <h3>Заказы</h3>
-            <div id="admin-orders">
-                <!-- Заказы для администрирования будут загружены здесь -->
-            </div>
         </div>
 
         <!-- Настройки -->
@@ -555,16 +525,17 @@
                 
                 <h3>Цветовая схема</h3>
                 <div class="color-options">
-                    <div class="color-btn" style="background: #40a7e3;" onclick="changeColorScheme('#40a7e3', '#2b95d6')"></div>
-                    <div class="color-btn" style="background: #4caf50;" onclick="changeColorScheme('#4caf50', '#388e3c')"></div>
-                    <div class="color-btn" style="background: #ff9800;" onclick="changeColorScheme('#ff9800', '#f57c00')"></div>
-                    <div class="color-btn" style="background: #9c27b0;" onclick="changeColorScheme('#9c27b0', '#7b1fa2')"></div>
+                    <div class="color-btn" style="background: #667eea;" onclick="changeColorScheme('#667eea', '#764ba2')"></div>
+                    <div class="color-btn" style="background: #4caf50;" onclick="changeColorScheme('#4caf50', '#8bc34a')"></div>
+                    <div class="color-btn" style="background: #ff9800;" onclick="changeColorScheme('#ff9800', '#ff5722')"></div>
+                    <div class="color-btn" style="background: #9c27b0;" onclick="changeColorScheme('#9c27b0', '#673ab7')"></div>
                 </div>
                 
                 <h3>Тема оформления</h3>
                 <div class="theme-options">
                     <button class="theme-btn active" onclick="changeTheme('default')">Светлая</button>
                     <button class="theme-btn" onclick="changeTheme('dark')">Темная</button>
+                    <button class="theme-btn" onclick="changeTheme('modern')">Модерн</button>
                 </div>
                 
                 <button class="buy-btn" onclick="saveSettings()">Сохранить настройки</button>
@@ -574,59 +545,19 @@
 
     <script>
         let tg = window.Telegram.WebApp;
-        let user = null;
-        let userKey = null;
-        
-        // Инициализация Telegram Web App
-        tg.ready();
         tg.expand();
         
-        // Ждем полной инициализации Telegram Web App
-        tg.onEvent('viewportChanged', function() {
-            initApp();
-        });
+        // Получаем данные пользователя
+        const user = tg.initDataUnsafe?.user || {
+            id: Math.floor(Math.random() * 1000000),
+            first_name: "Пользователь",
+            last_name: "",
+            username: "user"
+        };
         
-        // Если viewportChanged не сработал, инициализируем через небольшой таймаут
-        setTimeout(initApp, 1000);
+        // Генерируем уникальный ключ для пользователя
+        const userKey = `user_${user.id}`;
         
-        function initApp() {
-            // Получаем данные пользователя
-            user = tg.initDataUnsafe?.user;
-            
-            if (!user) {
-                // Если данные пользователя недоступны, создаем временного пользователя
-                user = {
-                    id: Math.floor(Math.random() * 1000000),
-                    first_name: "Гость",
-                    last_name: "",
-                    username: "guest"
-                };
-                
-                // Показываем сообщение, что данные пользователя недоступны
-                tg.showPopup({
-                    title: "Информация",
-                    message: "Данные пользователя недоступны. Используется гостевой режим."
-                });
-            }
-            
-            // Генерируем уникальный ключ для пользователя
-            userKey = `user_${user.id}`;
-            
-            // Обновляем информацию о пользователе
-            document.getElementById('user-name').textContent = `${user.first_name} ${user.last_name || ''}`.trim();
-            document.getElementById('user-id').textContent = `ID: ${user.id}`;
-            document.getElementById('user-avatar').textContent = user.first_name[0] || '👤';
-            
-            // Загружаем данные
-            loadData();
-            
-            // Применяем настройки
-            applySettings();
-            
-            // Загружаем первую вкладку
-            showTab('shop');
-        }
-
         // Предустановленные товары по умолчанию
         const defaultProducts = [
             {
@@ -634,7 +565,7 @@
                 name: "Смартфон Premium",
                 price: 29990,
                 description: "Мощный смартфон с отличной камерой и длительным временем работы батареи.",
-                image: "https://via.placeholder.com/300x200/40a7e3/ffffff?text=Смартфон",
+                image: "https://via.placeholder.com/300x200/667eea/ffffff?text=Смартфон",
                 category: "Электроника"
             },
             {
@@ -642,7 +573,7 @@
                 name: "Беспроводные наушники",
                 price: 4990,
                 description: "Качественные наушники с шумоподавлением и чистым звуком.",
-                image: "https://via.placeholder.com/300x200/2b95d6/ffffff?text=Наушники",
+                image: "https://via.placeholder.com/300x200/764ba2/ffffff?text=Наушники",
                 category: "Электроника"
             },
             {
@@ -655,37 +586,40 @@
             }
         ];
 
-        let products = [];
-        let settings = {};
-        let userData = {};
-        let allOrders = [];
+        // Загрузка данных
+        let products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
+        let settings = JSON.parse(localStorage.getItem('store_settings')) || {
+            theme: 'default',
+            colors: { primary: '#667eea', secondary: '#764ba2' },
+            storeName: 'Мой магазин',
+            contactInfo: '@ваш_username'
+        };
+        
+        // Загрузка данных пользователя
+        let userData = JSON.parse(localStorage.getItem(userKey)) || {
+            cart: [],
+            orders: []
+        };
 
-        function loadData() {
-            // Загрузка товаров
-            products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
-            
-            // Загрузка настроек
-            settings = JSON.parse(localStorage.getItem('store_settings')) || {
-                theme: 'default',
-                colors: { primary: '#40a7e3', secondary: '#2b95d6' },
-                storeName: 'Мой магазин',
-                contactInfo: '@ваш_username',
-                adminId: null
-            };
-            
-            // Загрузка данных пользователя
-            userData = JSON.parse(localStorage.getItem(userKey)) || {
-                cart: [],
-                orders: []
-            };
-            
-            // Загрузка всех заказов (для админки)
-            allOrders = JSON.parse(localStorage.getItem('store_orders')) || [];
-            
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
             // Обновляем счетчики
             document.getElementById('products-count').textContent = products.length;
-            document.getElementById('orders-count').textContent = allOrders.length;
-        }
+            
+            // Обновляем информацию о пользователе
+            document.getElementById('user-name').textContent = `${user.first_name} ${user.last_name || ''}`.trim();
+            document.getElementById('user-id').textContent = `ID: ${user.id}`;
+            document.getElementById('user-avatar').textContent = user.first_name[0] || '👤';
+            
+            // Применение настроек при загрузке
+            applySettings();
+            
+            // Обновляем счетчик посетителей
+            updateVisitorsCount();
+            
+            // Загружаем первую вкладку
+            showTab('shop');
+        });
 
         function showTab(tabName) {
             // Скрыть все вкладки и убрать активный класс со всех кнопок
@@ -706,12 +640,8 @@
                 loadProfile();
             } else if (tabName === 'admin') {
                 loadAdminProducts();
-                loadAdminOrders();
-            } else if (tabName === 'settings') {
-                // Заполняем поля настроек текущими значениями
-                document.getElementById('store-name').value = settings.storeName;
-                document.getElementById('contact-info').value = settings.contactInfo;
             }
+            // Для вкладки settings не требуется дополнительная загрузка
         }
 
         function loadProducts() {
@@ -731,9 +661,9 @@
 
             products.forEach((product, index) => {
                 const productHTML = `
-                    <div class="product">
+                    <div class="product animated">
                         <div class="product-image">
-                            ${getProductImageHTML(product)}
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
                         </div>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
@@ -746,20 +676,6 @@
                 `;
                 productsList.innerHTML += productHTML;
             });
-        }
-
-        function getProductImageHTML(product) {
-            if (!product.image) {
-                return '<div class="image-placeholder">🎁<br>Нет фото</div>';
-            }
-            
-            // Проверяем, является ли изображение допустимым URL
-            try {
-                new URL(product.image);
-                return `<img src="${product.image}" alt="${product.name}" onerror="this.parentNode.innerHTML='<div class=\\'image-placeholder\\'>❌<br>Ошибка загрузки</div>'">`;
-            } catch (e) {
-                return '<div class="image-placeholder">🔗<br>Неверный URL</div>';
-            }
         }
 
         function updateCategories() {
@@ -797,9 +713,9 @@
             filteredProducts.forEach((product, index) => {
                 const originalIndex = products.findIndex(p => p.id === product.id);
                 const productHTML = `
-                    <div class="product">
+                    <div class="product animated">
                         <div class="product-image">
-                            ${getProductImageHTML(product)}
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
                         </div>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
@@ -852,7 +768,7 @@
                 return;
             }
             
-            document.getElementById('cart-total').style.display = 'flex';
+            document.getElementById('cart-total').style.display = 'block';
             
             let totalPrice = 0;
             
@@ -863,7 +779,7 @@
                 const cartItemHTML = `
                     <div class="cart-item">
                         <div class="cart-item-image">
-                            ${getProductImageHTML(item)}
+                            ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '🎁'}
                         </div>
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
@@ -916,27 +832,17 @@
                 date: new Date().toLocaleString(),
                 items: [...userData.cart],
                 total: totalPrice,
-                status: "обрабатывается",
-                userId: user.id,
-                userName: `${user.first_name} ${user.last_name || ''}`.trim(),
-                username: user.username || 'нет'
+                status: "обрабатывается"
             };
             
-            // Добавляем заказ в историю пользователя
+            // Добавляем заказ в историю
             userData.orders.unshift(order);
-            
-            // Добавляем заказ в общий список заказов (для админки)
-            allOrders.unshift(order);
             
             // Очищаем корзину
             userData.cart = [];
             
             // Сохраняем данные
             localStorage.setItem(userKey, JSON.stringify(userData));
-            localStorage.setItem('store_orders', JSON.stringify(allOrders));
-            
-            // Отправляем уведомление администратору
-            notifyAdmin(order);
             
             tg.showPopup({
                 title: "✅ Заказ оформлен",
@@ -944,45 +850,11 @@
                 buttons: [{type: "ok", text: "Понятно"}]
             });
             
-            // Обновляем счетчик заказов
-            document.getElementById('orders-count').textContent = allOrders.length;
-            
             // Обновляем корзину
             loadCart();
             
             // Переходим в профиль чтобы показать историю заказов
             showTab('profile');
-        }
-
-        function notifyAdmin(order) {
-            // В реальном приложении здесь должен быть код для отправки уведомления
-            // администратору через Telegram Bot API
-            
-            // Пока просто показываем уведомление в интерфейсе
-            const notification = document.getElementById('notification');
-            notification.textContent = `Новый заказ #${order.id} на сумму ${order.total} руб.`;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);
-            
-            // В реальном приложении здесь должен быть код для отправки сообщения
-            // администратору через Telegram Bot API, например:
-            /*
-            if (settings.adminId) {
-                fetch(`https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        chat_id: settings.adminId,
-                        text: `🛒 Новый заказ!\n\nЗаказ #${order.id}\nОт: ${order.userName} (@${order.username})\nСумма: ${order.total} руб.\n\nТовары:\n${order.items.map(item => `- ${item.name} x${item.quantity}`).join('\n')}`
-                    })
-                });
-            }
-            */
         }
 
         function loadProfile() {
@@ -1016,7 +888,7 @@
 
         function addProduct() {
             const name = document.getElementById('product-name').value;
-            const price = parseFloat(document.getElementById('product-price').value);
+            const price = document.getElementById('product-price').value;
             const description = document.getElementById('product-desc').value;
             const image = document.getElementById('product-image').value;
             const category = document.getElementById('product-category').value;
@@ -1072,4 +944,119 @@
                     <div class="product">
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
-                        <div class="price">${product.price} руб.</div
+                        <div class="price">${product.price} руб.</div>
+                        <div class="admin-controls">
+                            <button class="admin-btn edit-btn" onclick="editProduct(${index})">✏️ Редактировать</button>
+                            <button class="admin-btn delete-btn" onclick="deleteProduct(${index})">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+                adminProductsContainer.innerHTML += productHTML;
+            });
+        }
+
+        function editProduct(index) {
+            const product = products[index];
+            
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-desc').value = product.description;
+            document.getElementById('product-image').value = product.image || '';
+            document.getElementById('product-category').value = product.category || '';
+            
+            // Удаляем старый товар
+            products.splice(index, 1);
+            localStorage.setItem('store_products', JSON.stringify(products));
+            
+            // Обновляем счетчик товаров
+            document.getElementById('products-count').textContent = products.length;
+            
+            loadAdminProducts();
+            
+            tg.showPopup({
+                title: "✏️ Редактирование",
+                message: "Заполните форму и нажмите 'Добавить товар' для сохранения изменений"
+            });
+        }
+
+        function deleteProduct(index) {
+            if (confirm("Вы уверены, что хотите удалить этот товар?")) {
+                products.splice(index, 1);
+                localStorage.setItem('store_products', JSON.stringify(products));
+                
+                // Обновляем счетчик товаров
+                document.getElementById('products-count').textContent = products.length;
+                
+                loadAdminProducts();
+                
+                tg.showPopup({
+                    title: "✅ Удалено",
+                    message: "Товар удален из магазина"
+                });
+            }
+        }
+
+        function applySettings() {
+            // Применение темы
+            document.body.className = '';
+            if (settings.theme === 'dark') {
+                document.body.classList.add('theme-dark');
+            } else if (settings.theme === 'modern') {
+                document.body.classList.add('theme-modern');
+            }
+            
+            // Применение цветов
+            if (settings.colors) {
+                document.documentElement.style.setProperty('--primary-color', settings.colors.primary);
+                document.documentElement.style.setProperty('--secondary-color', settings.colors.secondary);
+            }
+            
+            // Применение названия магазина
+            if (settings.storeName) {
+                document.querySelector('h1').textContent = settings.storeName;
+                document.getElementById('store-name').value = settings.storeName;
+            }
+            
+            // Применение контактной информации
+            if (settings.contactInfo) {
+                document.getElementById('contact-info').value = settings.contactInfo;
+            }
+        }
+
+        function changeTheme(theme) {
+            settings.theme = theme;
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+            applySettings();
+            
+            // Обновляем активные кнопки тем
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.theme-btn[onclick="changeTheme('${theme}')"]`).classList.add('active');
+        }
+
+        function changeColorScheme(primary, secondary) {
+            settings.colors = { primary, secondary };
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+            applySettings();
+        }
+
+        function saveSettings() {
+            settings.storeName = document.getElementById('store-name').value;
+            settings.contactInfo = document.getElementById('contact-info').value;
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+            
+            tg.showPopup({
+                title: "✅ Настройки сохранены",
+                message: "Настройки магазина успешно обновлены"
+            });
+            
+            applySettings();
+        }
+
+        function updateVisitorsCount() {
+            // Простая имитация счетчика посетителей
+            const visitors = Math.floor(Math.random() * 100) + 1;
+            document.getElementById('visitors-count').textContent = visitors;
+        }
+    </script>
+</body>
+</html
