@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🛍️ Мой магазин</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        .product {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .product img {
+            width: 100%;
+            border-radius: 8px;
+            height: 150px;
+            background: #667eea;
+        }
+        .price {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .buy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛍️ Мой магазин</h1>
+    <p>Добро пожаловать! Выберите товары:</p>
+
+    <div class="product">
+        <div style="height: 150px; background: #667eea; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+            📱 Фото телефона
+        </div>
+        <h3>Смартфон iPhone 15</h3>
+        <p>Новый флагманский смартфон с отличной камерой</p>
+        <div class="price">89 999 руб.</div>
+        <button class="buy-btn" onclick="buyProduct(1)">Купить</button>
+    </div>
+
+    <div class="product">
+        <div style="height: 150px; background: #764ba2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+            🎧 Фото наушников
+        </div>
+        <h3>Наушники Wireless</h3>
+        <p>Беспроводные наушники с шумоподавлением</p>
+        <div class="price">4 999 руб.</div>
+        <button class="buy-btn" onclick="buyProduct(2)">Купить</button>
+    </div>
+
+    <div class="product">
+        <div style="height: 150px; background: #ff6b6b; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+            👕 Фото футболки
+        </div>
+        <h3>Футболка Premium</h3>
+        <p>Качественная хлопковая футболка</p>
+        <div class="price">1 999 руб.</div>
+        <button class="buy-btn" onclick="buyProduct(3)">Купить</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function buyProduct(productId) {
+            let productName = "";
+            let price = "";
+            
+            if (productId === 1) {
+                productName = "Смартфон iPhone 15";
+                price = "89 999 руб.";
+            } else if (productId === 2) {
+                productName = "Наушники Wireless";
+                price = "4 999 руб.";
+            } else if (productId === 3) {
+                productName = "Футболка Premium";
+                price = "1 999 руб.";
+            }
+
+            tg.showPopup({
+                title: "✅ Товар добавлен",
+                message: productName + " - " + price + "\n\nСвяжитесь с нами для оформления заказа: @ваш_аккаунт",
+                buttons: [{type: "ok", text: "Понятно"}]
+            });
+        }
+    </script>
+</body>
+</html>
