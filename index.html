@@ -1,1039 +1,435 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛍️ Мой магазин</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --accent-color: #ff6b6b;
-            --success-color: #4caf50;
-            --background-color: #f0f2f5;
-            --text-color: #333;
-            --card-bg: #ffffff;
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+    
+    // Получаем данные пользователя
+    const user = tg.initDataUnsafe?.user || {
+        id: Math.floor(Math.random() * 1000000),
+        first_name: "Пользователь",
+        last_name: "",
+        username: "user"
+    };
+    
+    // Генерируем уникальный ключ для пользователя
+    const userKey = `user_${user.id}`;
+    
+    // Предустановленные товары по умолчанию
+    const defaultProducts = [
+        {
+            id: 1,
+            name: "Смартфон Premium",
+            price: 29990,
+            description: "Мощный смартфон с отличной камерой и длительным временем работы батареи.",
+            image: "https://via.placeholder.com/300x200/667eea/ffffff?text=Смартфон",
+            category: "Электроника"
+        },
+        {
+            id: 2,
+            name: "Беспроводные наушники",
+            price: 4990,
+            description: "Качественные наушники с шумоподавлением и чистым звуком.",
+            image: "https://via.placeholder.com/300x200/764ba2/ffffff?text=Наушники",
+            category: "Электроника"
+        },
+        {
+            id: 3,
+            name: "Футболка классическая",
+            price: 1990,
+            description: "Удобная хлопковая футболка с современным дизайном.",
+            image: "https://via.placeholder.com/300x200/ff6b6b/ffffff?text=Футболка",
+            category: "Одежда"
         }
+    ];
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    // Загрузка данных
+    let products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
+    let settings = JSON.parse(localStorage.getItem('store_settings')) || {
+        theme: 'default',
+        colors: { primary: '#667eea', secondary: '#764ba2' },
+        storeName: 'Мой магазин',
+        contactInfo: '@ваш_username'
+    };
+    
+    // Загрузка данных пользователя
+    let userData = JSON.parse(localStorage.getItem(userKey)) || {
+        cart: [],
+        orders: []
+    };
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--background-color);
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            color: var(--text-color);
-            transition: all 0.3s ease;
-            line-height: 1.6;
-        }
+    // Обновляем счетчики
+    document.getElementById('products-count').textContent = products.length;
+    
+    // Обновляем информацию о пользователе
+    document.getElementById('user-name').textContent = `${user.first_name} ${user.last_name || ''}`.trim();
+    document.getElementById('user-id').textContent = `ID: ${user.id}`;
+    document.getElementById('user-avatar').textContent = user.first_name[0] || '👤';
+    
+    // Применение настроек при загрузке
+    applySettings();
+    
+    // Обновляем счетчик посетителей
+    updateVisitorsCount();
 
-        .theme-dark {
-            --background-color: #1a1a1a;
-            --text-color: #ffffff;
-            --card-bg: #2d2d2d;
-            --primary-color: #7c93ff;
-            --secondary-color: #9b6dff;
-        }
-
-        .theme-modern {
-            --primary-color: #ff6b6b;
-            --secondary-color: #4ecdc4;
-            --accent-color: #45b7d1;
-            --background-color: #f8f9fa;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: var(--card-bg);
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        .status-panel {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .status-panel h2 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .status-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .status-card {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .status-card h3 {
-            font-size: 14px;
-            margin-bottom: 5px;
-            opacity: 0.9;
-        }
-
-        .status-card p {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .tab {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .active {
-            display: block;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            background: var(--card-bg);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn:hover {
-            background: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-
-        .tab-btn.active {
-            background: var(--secondary-color);
-        }
-
-        .product {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .product:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .price {
-            color: var(--accent-color);
-            font-weight: bold;
-            font-size: 20px;
-            margin: 15px 0;
-        }
-
-        .buy-btn {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .buy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .admin-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .admin-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .form-group {
-            margin: 15px 0;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        .save-btn {
-            background: var(--success-color);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .theme-selector {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .theme-btn {
-            padding: 10px 15px;
-            border: 2px solid var(--primary-color);
-            border-radius: 10px;
-            cursor: pointer;
-            background: white;
-            transition: all 0.3s ease;
-        }
-
-        .theme-btn.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .settings-panel {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-        }
-
-        .color-picker {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .color-option {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid #ddd;
-        }
-
-        .animated {
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(-100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .category-filter {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-
-        .category-btn {
-            padding: 8px 15px;
-            border: 2px solid var(--primary-color);
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .category-btn.active {
-            background: var(--primary-color);
-            color: white;
-        }
+    function showTab(tabName) {
+        // Скрыть все вкладки и убрать активный класс со всех кнопок
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-        }
+        // Показать выбранную вкладку и активировать соответствующую кнопку
+        document.getElementById(tabName).classList.add('active');
+        document.querySelector(`button[onclick="showTab('${tabName}')"]`).classList.add('active');
         
-        .empty-state i {
-            font-size: 50px;
-            margin-bottom: 15px;
-            display: block;
-        }
-        
-        .admin-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-        
-        .delete-btn {
-            background: var(--accent-color);
-        }
-        
-        .edit-btn {
-            background: var(--primary-color);
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 15px;
-            color: #888;
-            font-size: 14px;
-        }
-        
-        .instructions {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .instructions h3 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-        }
-        
-        .cart-item {
-            display: flex;
-            margin-bottom: 15px;
-            padding: 15px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .cart-item-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-right: 15px;
-        }
-        
-        .cart-item-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .cart-item-info {
-            flex: 1;
-        }
-        
-        .cart-item-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .quantity-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            background: var(--primary-color);
-            color: white;
-            cursor: pointer;
-        }
-        
-        .cart-total {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .profile-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: white;
-        }
-        
-        .order-history {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .order-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>🛍️ Мой магазин</h1>
-        <p>Добро пожаловать в ваш персональный магазин в Telegram!</p>
-    </header>
-
-    <div class="status-panel">
-        <h2>Статус магазина</h2>
-        <div class="status-info">
-            <div class="status-card">
-                <h3>Товаров в магазине</h3>
-                <p id="products-count">0</p>
-            </div>
-            <div class="status-card">
-                <h3>Доступность</h3>
-                <p id="access-status">✅ Активен</p>
-            </div>
-            <div class="status-card">
-                <h3>Посетителей</h3>
-                <p id="visitors-count">1</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="instructions">
-        <h3>Как пользоваться магазином:</h3>
-        <ul>
-            <li>Переключайтесь между вкладками для просмотра товаров, управления и настроек</li>
-            <li>Все новые пользователи увидят товары по умолчанию</li>
-            <li>Администратор может добавлять, редактировать и удалять товары</li>
-            <li>Настройте внешний вид магазина во вкладке "Дизайн"</li>
-        </ul>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('shop')">🛍️ Магазин</button>
-        <button class="tab-btn" onclick="showTab('cart')">🛒 Корзина</button>
-        <button class="tab-btn" onclick="showTab('profile')">👤 Профиль</button>
-        <button class="tab-btn" onclick="showTab('admin')">⚙️ Админка</button>
-        <button class="tab-btn" onclick="showTab('settings')">🎨 Дизайн</button>
-    </div>
-
-    <!-- Магазин для покупателей -->
-    <div id="shop" class="tab active">
-        <h2>🛍️ Товары магазина</h2>
-        
-        <div class="category-filter" id="category-filter">
-            <button class="category-btn active" onclick="filterProducts('all')">Все</button>
-            <!-- Категории будут добавляться здесь -->
-        </div>
-        
-        <div id="products-list">
-            <!-- Товары будут здесь -->
-        </div>
-    </div>
-
-    <!-- Корзина -->
-    <div id="cart" class="tab">
-        <h2>🛒 Корзина</h2>
-        
-        <div id="cart-items">
-            <!-- Товары в корзине будут здесь -->
-        </div>
-        
-        <div class="cart-total" id="cart-total">
-            <h3>Итого: <span id="total-price">0</span> руб.</h3>
-            <button class="buy-btn" onclick="checkout()">💳 Оформить заказ</button>
-        </div>
-    </div>
-
-    <!-- Профиль -->
-    <div id="profile" class="tab">
-        <h2>👤 Мой профиль</h2>
-        
-        <div class="profile-card">
-            <div class="profile-avatar" id="user-avatar">👤</div>
-            <h3 id="user-name">Пользователь</h3>
-            <p id="user-id">ID: </p>
-        </div>
-        
-        <div class="order-history">
-            <h3>История заказов</h3>
-            <div id="order-history">
-                <!-- История заказов будет здесь -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Админ-панель -->
-    <div id="admin" class="tab">
-        <h2>⚙️ Панель администратора</h2>
-        
-        <div class="form-group">
-            <input type="text" id="product-name" placeholder="Название товара">
-        </div>
-        <div class="form-group">
-            <input type="number" id="product-price" placeholder="Цена (руб)">
-        </div>
-        <div class="form-group">
-            <textarea id="product-desc" placeholder="Описание товара" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-            <input type="text" id="product-image" placeholder="URL картинки">
-        </div>
-        <div class="form-group">
-            <input type="text" id="product-category" placeholder="Категория (например: электроника)">
-        </div>
-        
-        <button class="save-btn" onclick="addProduct()">➕ Добавить товар</button>
-        
-        <h3>Мои товары:</h3>
-        <div id="admin-products">
-            <!-- Список товаров для редактирования -->
-        </div>
-    </div>
-
-    <!-- Настройки дизайна -->
-    <div id="settings" class="tab">
-        <h2>🎨 Настройки дизайна</h2>
-        
-        <div class="settings-panel">
-            <h3>Выберите тему:</h3>
-            <div class="theme-selector">
-                <button class="theme-btn active" onclick="changeTheme('default')">Стандартная</button>
-                <button class="theme-btn" onclick="changeTheme('dark')">Тёмная</button>
-                <button class="theme-btn" onclick="changeTheme('modern')">Модерн</button>
-            </div>
-
-            <h3>Цветовая схема:</h3>
-            <div class="color-picker">
-                <div class="color-option" style="background: #667eea;" onclick="changeColorScheme('#667eea', '#764ba2')"></div>
-                <div class="color-option" style="background: #ff6b6b;" onclick="changeColorScheme('#ff6b6b', '#45b7d1')"></div>
-                <div class="color-option" style="background: #4caf50;" onclick="changeColorScheme('#4caf50', '#8bc34a')"></div>
-                <div class="color-option" style="background: #ff9800;" onclick="changeColorScheme('#ff9800', '#ff5722')"></div>
-                <div class="color-option" style="background: #9c27b0;" onclick="changeColorScheme('#9c27b0', '#673ab7')"></div>
-            </div>
-
-            <h3>Настройки магазина:</h3>
-            <div class="form-group">
-                <input type="text" id="store-name" placeholder="Название магазина" value="Мой магазин">
-            </div>
-            <div class="form-group">
-                <input type="text" id="contact-info" placeholder="Контактная информация" value="@ваш_username">
-            </div>
-            <button class="save-btn" onclick="saveSettings()">💾 Сохранить настройки</button>
-        </div>
-    </div>
-
-    <footer>
-        <p>Мой магазин в Telegram • 2023</p>
-    </footer>
-
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // Получаем данные пользователя
-        const user = tg.initDataUnsafe?.user || {
-            id: Math.floor(Math.random() * 1000000),
-            first_name: "Пользователь",
-            last_name: "",
-            username: "user"
-        };
-        
-        // Генерируем уникальный ключ для пользователя
-        const userKey = `user_${user.id}`;
-        
-        // Предустановленные товары по умолчанию
-        const defaultProducts = [
-            {
-                id: 1,
-                name: "Смартфон Premium",
-                price: 29990,
-                description: "Мощный смартфон с отличной камерой и длительным временем работы батареи.",
-                image: "https://via.placeholder.com/300x200/667eea/ffffff?text=Смартфон",
-                category: "Электроника"
-            },
-            {
-                id: 2,
-                name: "Беспроводные наушники",
-                price: 4990,
-                description: "Качественные наушники с шумоподавлением и чистым звуком.",
-                image: "https://via.placeholder.com/300x200/764ba2/ffffff?text=Наушники",
-                category: "Электроника"
-            },
-            {
-                id: 3,
-                name: "Футболка классическая",
-                price: 1990,
-                description: "Удобная хлопковая футболка с современным дизайном.",
-                image: "https://via.placeholder.com/300x200/ff6b6b/ffffff?text=Футболка",
-                category: "Одежда"
-            }
-        ];
-
-        // Загрузка данных
-        let products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
-        let settings = JSON.parse(localStorage.getItem('store_settings')) || {
-            theme: 'default',
-            colors: { primary: '#667eea', secondary: '#764ba2' },
-            storeName: 'Мой магазин',
-            contactInfo: '@ваш_username'
-        };
-        
-        // Загрузка данных пользователя
-        let userData = JSON.parse(localStorage.getItem(userKey)) || {
-            cart: [],
-            orders: []
-        };
-
-        // Обновляем счетчики
-        document.getElementById('products-count').textContent = products.length;
-        
-        // Обновляем информацию о пользователе
-        document.getElementById('user-name').textContent = `${user.first_name} ${user.last_name || ''}`.trim();
-        document.getElementById('user-id').textContent = `ID: ${user.id}`;
-        document.getElementById('user-avatar').textContent = user.first_name[0] || '👤';
-        
-        // Применение настроек при загрузке
-        applySettings();
-        
-        // Обновляем счетчик посетителей
-        updateVisitorsCount();
-
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            document.querySelector(`button[onclick="showTab('${tabName}')"]`).classList.add('active');
-            
-            if (tabName === 'shop') {
-                loadProducts();
-                updateCategories();
-            } else if (tabName === 'admin') {
-                loadAdminProducts();
-            } else if (tabName === 'cart') {
-                loadCart();
-            } else if (tabName === 'profile') {
-                loadProfile();
-            }
-        }
-
-        function loadProducts() {
-            const productsList = document.getElementById('products-list');
-            productsList.innerHTML = '';
-            
-            if (products.length === 0) {
-                productsList.innerHTML = `
-                    <div class="empty-state">
-                        <i>🛒</i>
-                        <h3>Товаров пока нет</h3>
-                        <p>Добавьте товары через панель администратора</p>
-                    </div>
-                `;
-                return;
-            }
-
-            products.forEach((product, index) => {
-                const productHTML = `
-                    <div class="product animated">
-                        <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
-                        </div>
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        ${product.category ? `<span style="background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">${product.category}</span>` : ''}
-                        <div class="price">${product.price} руб.</div>
-                        <button class="buy-btn" onclick="addToCart(${index})">
-                            🛒 Добавить в корзину
-                        </button>
-                    </div>
-                `;
-                productsList.innerHTML += productHTML;
-            });
-        }
-
-        function updateCategories() {
-            const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
-            const filterContainer = document.getElementById('category-filter');
-            
-            let categoriesHTML = '<button class="category-btn active" onclick="filterProducts(\'all\')">Все</button>';
-            categories.forEach(category => {
-                categoriesHTML += `<button class="category-btn" onclick="filterProducts('${category}')">${category}</button>`;
-            });
-            
-            filterContainer.innerHTML = categoriesHTML;
-        }
-
-        function filterProducts(category) {
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            const productsList = document.getElementById('products-list');
-            productsList.innerHTML = '';
-
-            const filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
-            
-            if (filteredProducts.length === 0) {
-                productsList.innerHTML = `
-                    <div class="empty-state">
-                        <i>🔍</i>
-                        <h3>Товары не найдены</h3>
-                        <p>Попробуйте выбрать другую категорию</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            filteredProducts.forEach((product, index) => {
-                const originalIndex = products.findIndex(p => p.id === product.id);
-                const productHTML = `
-                    <div class="product animated">
-                        <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
-                        </div>
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        ${product.category ? `<span style="background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">${product.category}</span>` : ''}
-                        <div class="price">${product.price} руб.</div>
-                        <button class="buy-btn" onclick="addToCart(${originalIndex})">
-                            🛒 Добавить в корзину
-                        </button>
-                    </div>
-                `;
-                productsList.innerHTML += productHTML;
-            });
-        }
-
-        function addToCart(productIndex) {
-            const product = products[productIndex];
-            const existingItem = userData.cart.find(item => item.id === product.id);
-            
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                userData.cart.push({
-                    ...product,
-                    quantity: 1
-                });
-            }
-            
-            // Сохраняем обновленные данные
-            localStorage.setItem(userKey, JSON.stringify(userData));
-            
-            tg.showPopup({
-                title: "✅ Добавлено в корзину",
-                message: `${product.name} добавлен в корзину!`
-            });
-        }
-
-        function loadCart() {
-            const cartItems = document.getElementById('cart-items');
-            cartItems.innerHTML = '';
-            
-            if (userData.cart.length === 0) {
-                cartItems.innerHTML = `
-                    <div class="empty-state">
-                        <i>🛒</i>
-                        <h3>Корзина пуста</h3>
-                        <p>Добавьте товары из магазина</p>
-                    </div>
-                `;
-                document.getElementById('cart-total').style.display = 'none';
-                return;
-            }
-            
-            document.getElementById('cart-total').style.display = 'block';
-            
-            let totalPrice = 0;
-            
-            userData.cart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                totalPrice += itemTotal;
-                
-                const cartItemHTML = `
-                    <div class="cart-item">
-                        <div class="cart-item-image">
-                            ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '🎁'}
-                        </div>
-                        <div class="cart-item-info">
-                            <h4>${item.name}</h4>
-                            <div class="price">${item.price} руб. x ${item.quantity} = ${itemTotal} руб.</div>
-                        </div>
-                        <div class="cart-item-controls">
-                            <button class="quantity-btn" onclick="changeQuantity(${index}, -1)">-</button>
-                            <span>${item.quantity}</span>
-                            <button class="quantity-btn" onclick="changeQuantity(${index}, 1)">+</button>
-                            <button class="admin-btn delete-btn" onclick="removeFromCart(${index})">🗑️</button>
-                        </div>
-                    </div>
-                `;
-                cartItems.innerHTML += cartItemHTML;
-            });
-            
-            document.getElementById('total-price').textContent = totalPrice;
-        }
-
-        function changeQuantity(index, change) {
-            const item = userData.cart[index];
-            item.quantity += change;
-            
-            if (item.quantity <= 0) {
-                userData.cart.splice(index, 1);
-            }
-            
-            localStorage.setItem(userKey, JSON.stringify(userData));
+        // Загрузить контент для конкретной вкладки
+        if (tabName === 'shop') {
+            loadProducts();
+            updateCategories();
+        } else if (tabName === 'cart') {
             loadCart();
-        }
-
-        function removeFromCart(index) {
-            userData.cart.splice(index, 1);
-            localStorage.setItem(userKey, JSON.stringify(userData));
-            loadCart();
-        }
-
-        function checkout() {
-            if (userData.cart.length === 0) {
-                tg.showPopup({
-                    title: "❌ Ошибка",
-                    message: "Корзина пуста!"
-                });
-                return;
-            }
-            
-            const totalPrice = userData.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-            const order = {
-                id: Date.now(),
-                date: new Date().toLocaleString(),
-                items: [...userData.cart],
-                total: totalPrice,
-                status: "обрабатывается"
-            };
-            
-            // Добавляем заказ в историю
-            userData.orders.unshift(order);
-            
-            // Очищаем корзину
-            userData.cart = [];
-            
-            // Сохраняем данные
-            localStorage.setItem(userKey, JSON.stringify(userData));
-            
-            tg.showPopup({
-                title: "✅ Заказ оформлен",
-                message: `Ваш заказ на сумму ${totalPrice} руб. принят в обработку!\n\nСвяжитесь с нами: ${settings.contactInfo}`,
-                buttons: [{type: "ok", text: "Понятно"}]
-            });
-            
-            // Обновляем корзину
-            loadCart();
-            
-            // Переходим в профиль чтобы показать историю заказов
-            showTab('profile');
-        }
-
-        function loadProfile() {
-            const orderHistory = document.getElementById('order-history');
-            orderHistory.innerHTML = '';
-            
-            if (userData.orders.length === 0) {
-                orderHistory.innerHTML = `
-                    <div class="empty-state">
-                        <i>📦</i>
-                        <h3>Заказов пока нет</h3>
-                        <p>Ваша история заказов появится здесь</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            userData.orders.forEach(order => {
-                const orderHTML = `
-                    <div class="order-item">
-                        <h4>Заказ #${order.id}</h4>
-                        <p>Дата: ${order.date}</p>
-                        <p>Товаров: ${order.items.reduce((total, item) => total + item.quantity, 0)}</p>
-                        <p>Сумма: ${order.total} руб.</p>
-                        <p>Статус: ${order.status}</p>
-                    </div>
-                `;
-                orderHistory.innerHTML += orderHTML;
-            });
-        }
-
-        function addProduct() {
-            const name = document.getElementById('product-name').value;
-            const price = document.getElementById('product-price').value;
-            const description = document.getElementById('product-desc').value;
-            const image = document.getElementById('product-image').value;
-            const category = document.getElementById('product-category').value;
-
-            if (!name || !price || !description) {
-                tg.showPopup({
-                    title: "❌ Ошибка",
-                    message: "Заполните обязательные поля!"
-                });
-                return;
-            }
-
-            products.push({
-                id: Date.now(),
-                name: name,
-                price: price,
-                description: description,
-                image: image,
-                category: category
-            });
-
-            localStorage.setItem('store_products', JSON.stringify(products));
-            
-            // Обновляем счетчик товаров
-            document.getElementById('products-count').textContent = products.length;
-            
-            // Очистка формы
-            document.getElementById('product-name').value = '';
-            document.getElementById('product-price').value = '';
-            document.getElementById('product-desc').value = '';
-            document.getElementById('product-image').value = '';
-            document.getElementById('product-category').value = '';
-
-            tg.showPopup({
-                title: "✅ Успех",
-                message: "Товар добавлен!"
-            });
-
+        } else if (tabName === 'profile') {
+            loadProfile();
+        } else if (tabName === 'admin') {
             loadAdminProducts();
         }
+        // Для вкладки settings не требуется дополнительная загрузка
+    }
 
-        function loadAdminProducts() {
-            const adminProductsContainer = document.getElementById('admin-products');
-            adminProductsContainer.innerHTML = '';
-            
-            if (products.length === 0) {
-                adminProductsContainer.innerHTML = '<p>Товаров пока нет</p>';
-                return;
-            }
-            
-            products.forEach((product, index) => {
-                const productHTML = `
-                    <div class="product">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <div class="price">${product.price} руб.</div>
-                        <div class="admin-controls">
-                            <button class="admin-btn edit-btn" onclick="editProduct(${index})">✏️ Редактировать</button>
-                            <button class="admin-btn delete-btn" onclick="deleteProduct(${index})">🗑️ Удалить</button>
-                        </div>
-                    </div>
-                `;
-                adminProductsContainer.innerHTML += productHTML;
-            });
+    function loadProducts() {
+        const productsList = document.getElementById('products-list');
+        productsList.innerHTML = '';
+        
+        if (products.length === 0) {
+            productsList.innerHTML = `
+                <div class="empty-state">
+                    <i>🛒</i>
+                    <h3>Товаров пока нет</h3>
+                    <p>Добавьте товары через панель администратора</p>
+                </div>
+            `;
+            return;
         }
 
-        function editProduct(index) {
-            const product = products[index];
+        products.forEach((product, index) => {
+            const productHTML = `
+                <div class="product animated">
+                    <div class="product-image">
+                        ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
+                    </div>
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    ${product.category ? `<span style="background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">${product.category}</span>` : ''}
+                    <div class="price">${product.price} руб.</div>
+                    <button class="buy-btn" onclick="addToCart(${index})">
+                        🛒 Добавить в корзину
+                    </button>
+                </div>
+            `;
+            productsList.innerHTML += productHTML;
+        });
+    }
+
+    function updateCategories() {
+        const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+        const filterContainer = document.getElementById('category-filter');
+        
+        let categoriesHTML = '<button class="category-btn active" onclick="filterProducts(\'all\')">Все</button>';
+        categories.forEach(category => {
+            categoriesHTML += `<button class="category-btn" onclick="filterProducts('${category}')">${category}</button>`;
+        });
+        
+        filterContainer.innerHTML = categoriesHTML;
+    }
+
+    function filterProducts(category) {
+        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const productsList = document.getElementById('products-list');
+        productsList.innerHTML = '';
+
+        const filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
+        
+        if (filteredProducts.length === 0) {
+            productsList.innerHTML = `
+                <div class="empty-state">
+                    <i>🔍</i>
+                    <h3>Товары не найдены</h3>
+                    <p>Попробуйте выбрать другую категорию</p>
+                </div>
+            `;
+            return;
+        }
+        
+        filteredProducts.forEach((product, index) => {
+            const originalIndex = products.findIndex(p => p.id === product.id);
+            const productHTML = `
+                <div class="product animated">
+                    <div class="product-image">
+                        ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
+                    </div>
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    ${product.category ? `<span style="background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">${product.category}</span>` : ''}
+                    <div class="price">${product.price} руб.</div>
+                    <button class="buy-btn" onclick="addToCart(${originalIndex})">
+                        🛒 Добавить в корзину
+                    </button>
+                </div>
+            `;
+            productsList.innerHTML += productHTML;
+        });
+    }
+
+    function addToCart(productIndex) {
+        const product = products[productIndex];
+        const existingItem = userData.cart.find(item => item.id === product.id);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            userData.cart.push({
+                ...product,
+                quantity: 1
+            });
+        }
+        
+        // Сохраняем обновленные данные
+        localStorage.setItem(userKey, JSON.stringify(userData));
+        
+        tg.showPopup({
+            title: "✅ Добавлено в корзину",
+            message: `${product.name} добавлен в корзину!`
+        });
+    }
+
+    function loadCart() {
+        const cartItems = document.getElementById('cart-items');
+        cartItems.innerHTML = '';
+        
+        if (userData.cart.length === 0) {
+            cartItems.innerHTML = `
+                <div class="empty-state">
+                    <i>🛒</i>
+                    <h3>Корзина пуста</h3>
+                    <p>Добавьте товары из магазина</p>
+                </div>
+            `;
+            document.getElementById('cart-total').style.display = 'none';
+            return;
+        }
+        
+        document.getElementById('cart-total').style.display = 'block';
+        
+        let totalPrice = 0;
+        
+        userData.cart.forEach((item, index) => {
+            const itemTotal = item.price * item.quantity;
+            totalPrice += itemTotal;
             
-            document.getElementById('product-name').value = product.name;
-            document.getElementById('product-price').value = product.price;
-            document.getElementById('product-desc').value = product.description;
-            document.getElementById('product-image').value = product.image || '';
-            document.getElementById('product-category').value = product.category || '';
-            
-            // Удаляем старый товар
+            const cartItemHTML = `
+                <div class="cart-item">
+                    <div class="cart-item-image">
+                        ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '🎁'}
+                    </div>
+                    <div class="cart-item-info">
+                        <h4>${item.name}</h4>
+                        <div class="price">${item.price} руб. x ${item.quantity} = ${itemTotal} руб.</div>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button class="quantity-btn" onclick="changeQuantity(${index}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn" onclick="changeQuantity(${index}, 1)">+</button>
+                        <button class="admin-btn delete-btn" onclick="removeFromCart(${index})">🗑️</button>
+                    </div>
+                </div>
+            `;
+            cartItems.innerHTML += cartItemHTML;
+        });
+        
+        document.getElementById('total-price').textContent = totalPrice;
+    }
+
+    function changeQuantity(index, change) {
+        const item = userData.cart[index];
+        item.quantity += change;
+        
+        if (item.quantity <= 0) {
+            userData.cart.splice(index, 1);
+        }
+        
+        localStorage.setItem(userKey, JSON.stringify(userData));
+        loadCart();
+    }
+
+    function removeFromCart(index) {
+        userData.cart.splice(index, 1);
+        localStorage.setItem(userKey, JSON.stringify(userData));
+        loadCart();
+    }
+
+    function checkout() {
+        if (userData.cart.length === 0) {
+            tg.showPopup({
+                title: "❌ Ошибка",
+                message: "Корзина пуста!"
+            });
+            return;
+        }
+        
+        const totalPrice = userData.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        const order = {
+            id: Date.now(),
+            date: new Date().toLocaleString(),
+            items: [...userData.cart],
+            total: totalPrice,
+            status: "обрабатывается"
+        };
+        
+        // Добавляем заказ в историю
+        userData.orders.unshift(order);
+        
+        // Очищаем корзину
+        userData.cart = [];
+        
+        // Сохраняем данные
+        localStorage.setItem(userKey, JSON.stringify(userData));
+        
+        tg.showPopup({
+            title: "✅ Заказ оформлен",
+            message: `Ваш заказ на сумму ${totalPrice} руб. принят в обработку!\n\nСвяжитесь с нами: ${settings.contactInfo}`,
+            buttons: [{type: "ok", text: "Понятно"}]
+        });
+        
+        // Обновляем корзину
+        loadCart();
+        
+        // Переходим в профиль чтобы показать историю заказов
+        showTab('profile');
+    }
+
+    function loadProfile() {
+        const orderHistory = document.getElementById('order-history');
+        orderHistory.innerHTML = '';
+        
+        if (userData.orders.length === 0) {
+            orderHistory.innerHTML = `
+                <div class="empty-state">
+                    <i>📦</i>
+                    <h3>Заказов пока нет</h3>
+                    <p>Ваша история заказов появится здесь</p>
+                </div>
+            `;
+            return;
+        }
+        
+        userData.orders.forEach(order => {
+            const orderHTML = `
+                <div class="order-item">
+                    <h4>Заказ #${order.id}</h4>
+                    <p>Дата: ${order.date}</p>
+                    <p>Товаров: ${order.items.reduce((total, item) => total + item.quantity, 0)}</p>
+                    <p>Сумма: ${order.total} руб.</p>
+                    <p>Статус: ${order.status}</p>
+                </div>
+            `;
+            orderHistory.innerHTML += orderHTML;
+        });
+    }
+
+    function addProduct() {
+        const name = document.getElementById('product-name').value;
+        const price = document.getElementById('product-price').value;
+        const description = document.getElementById('product-desc').value;
+        const image = document.getElementById('product-image').value;
+        const category = document.getElementById('product-category').value;
+
+        if (!name || !price || !description) {
+            tg.showPopup({
+                title: "❌ Ошибка",
+                message: "Заполните обязательные поля!"
+            });
+            return;
+        }
+
+        products.push({
+            id: Date.now(),
+            name: name,
+            price: price,
+            description: description,
+            image: image,
+            category: category
+        });
+
+        localStorage.setItem('store_products', JSON.stringify(products));
+        
+        // Обновляем счетчик товаров
+        document.getElementById('products-count').textContent = products.length;
+        
+        // Очистка формы
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-price').value = '';
+        document.getElementById('product-desc').value = '';
+        document.getElementById('product-image').value = '';
+        document.getElementById('product-category').value = '';
+
+        tg.showPopup({
+            title: "✅ Успех",
+            message: "Товар добавлен!"
+        });
+
+        loadAdminProducts();
+    }
+
+    function loadAdminProducts() {
+        const adminProductsContainer = document.getElementById('admin-products');
+        adminProductsContainer.innerHTML = '';
+        
+        if (products.length === 0) {
+            adminProductsContainer.innerHTML = '<p>Товаров пока нет</p>';
+            return;
+        }
+        
+        products.forEach((product, index) => {
+            const productHTML = `
+                <div class="product">
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <div class="price">${product.price} руб.</div>
+                    <div class="admin-controls">
+                        <button class="admin-btn edit-btn" onclick="editProduct(${index})">✏️ Редактировать</button>
+                        <button class="admin-btn delete-btn" onclick="deleteProduct(${index})">🗑️ Удалить</button>
+                    </div>
+                </div>
+            `;
+            adminProductsContainer.innerHTML += productHTML;
+        });
+    }
+
+    function editProduct(index) {
+        const product = products[index];
+        
+        document.getElementById('product-name').value = product.name;
+        document.getElementById('product-price').value = product.price;
+        document.getElementById('product-desc').value = product.description;
+        document.getElementById('product-image').value = product.image || '';
+        document.getElementById('product-category').value = product.category || '';
+        
+        // Удаляем старый товар
+        products.splice(index, 1);
+        localStorage.setItem('store_products', JSON.stringify(products));
+        
+        // Обновляем счетчик товаров
+        document.getElementById('products-count').textContent = products.length;
+        
+        loadAdminProducts();
+        
+        tg.showPopup({
+            title: "✏️ Редактирование",
+            message: "Заполните форму и нажмите 'Добавить товар' для сохранения изменений"
+        });
+    }
+
+    function deleteProduct(index) {
+        if (confirm("Вы уверены, что хотите удалить этот товар?")) {
             products.splice(index, 1);
             localStorage.setItem('store_products', JSON.stringify(products));
             
@@ -1043,21 +439,71 @@
             loadAdminProducts();
             
             tg.showPopup({
-                title: "✏️ Редактирование",
-                message: "Заполните форму и нажмите 'Добавить товар' для сохранения изменений"
+                title: "✅ Удалено",
+                message: "Товар удален из магазина"
             });
         }
+    }
 
-        function deleteProduct(index) {
-            if (confirm("Вы уверены, что хотите удалить этот товар?")) {
-                products.splice(index, 1);
-                localStorage.setItem('store_products', JSON.stringify(products));
-                
-                // Обновляем счетчик товаров
-                document.getElementById('products-count').textContent = products.length;
-                
-                loadAdminProducts();
-                
-                tg.showPopup({
-                    title: "✅ Удалено",
-                    message: "Това
+    function applySettings() {
+        // Применение темы
+        document.body.className = '';
+        if (settings.theme === 'dark') {
+            document.body.classList.add('theme-dark');
+        } else if (settings.theme === 'modern') {
+            document.body.classList.add('theme-modern');
+        }
+        
+        // Применение цветов
+        if (settings.colors) {
+            document.documentElement.style.setProperty('--primary-color', settings.colors.primary);
+            document.documentElement.style.setProperty('--secondary-color', settings.colors.secondary);
+        }
+        
+        // Применение названия магазина
+        if (settings.storeName) {
+            document.querySelector('h1').textContent = settings.storeName;
+            document.getElementById('store-name').value = settings.storeName;
+        }
+        
+        // Применение контактной информации
+        if (settings.contactInfo) {
+            document.getElementById('contact-info').value = settings.contactInfo;
+        }
+    }
+
+    function changeTheme(theme) {
+        settings.theme = theme;
+        localStorage.setItem('store_settings', JSON.stringify(settings));
+        applySettings();
+        
+        // Обновляем активные кнопки тем
+        document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.theme-btn[onclick="changeTheme('${theme}')"]`).classList.add('active');
+    }
+
+    function changeColorScheme(primary, secondary) {
+        settings.colors = { primary, secondary };
+        localStorage.setItem('store_settings', JSON.stringify(settings));
+        applySettings();
+    }
+
+    function saveSettings() {
+        settings.storeName = document.getElementById('store-name').value;
+        settings.contactInfo = document.getElementById('contact-info').value;
+        localStorage.setItem('store_settings', JSON.stringify(settings));
+        
+        tg.showPopup({
+            title: "✅ Настройки сохранены",
+            message: "Настройки магазина успешно обновлены"
+        });
+        
+        applySettings();
+    }
+
+    function updateVisitorsCount() {
+        // Простая имитация счетчика посетителей
+        const visitors = Math.floor(Math.random() * 100) + 1;
+        document.getElementById('visitors-count').textContent = visitors;
+    }
+</script>
