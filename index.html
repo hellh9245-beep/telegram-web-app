@@ -264,6 +264,32 @@
             background: var(--primary-color);
             color: white;
         }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .delete-btn {
+            background: var(--accent-color);
+        }
+        
+        .edit-btn {
+            background: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -275,7 +301,7 @@
 
     <!-- Магазин для покупателей -->
     <div id="shop" class="tab active">
-        <h1>🛍️ Мой магазин</h1>
+        <h1 id="store-title">🛍️ Мой магазин</h1>
         
         <div class="category-filter" id="category-filter">
             <button class="category-btn active" onclick="filterProducts('all')">Все</button>
@@ -350,9 +376,37 @@
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        
+        // Предустановленные товары по умолчанию
+        const defaultProducts = [
+            {
+                id: 1,
+                name: "Смартфон Premium",
+                price: 29990,
+                description: "Мощный смартфон с отличной камерой и длительным временем работы батареи.",
+                image: "https://via.placeholder.com/300x200/667eea/ffffff?text=Смартфон",
+                category: "Электроника"
+            },
+            {
+                id: 2,
+                name: "Беспроводные наушники",
+                price: 4990,
+                description: "Качественные наушники с шумоподавлением и чистым звуком.",
+                image: "https://via.placeholder.com/300x200/764ba2/ffffff?text=Наушники",
+                category: "Электроника"
+            },
+            {
+                id: 3,
+                name: "Футболка классическая",
+                price: 1990,
+                description: "Удобная хлопковая футболка с современным дизайном.",
+                image: "https://via.placeholder.com/300x200/ff6b6b/ffffff?text=Футболка",
+                category: "Одежда"
+            }
+        ];
 
         // Загрузка данных
-        let products = JSON.parse(localStorage.getItem('store_products')) || [];
+        let products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
         let settings = JSON.parse(localStorage.getItem('store_settings')) || {
             theme: 'default',
             colors: { primary: '#667eea', secondary: '#764ba2' },
@@ -380,6 +434,17 @@
         function loadProducts() {
             const productsList = document.getElementById('products-list');
             productsList.innerHTML = '';
+            
+            if (products.length === 0) {
+                productsList.innerHTML = `
+                    <div class="empty-state">
+                        <i>🛒</i>
+                        <h3>Товаров пока нет</h3>
+                        <p>Добавьте товары через панель администратора</p>
+                    </div>
+                `;
+                return;
+            }
 
             products.forEach((product, index) => {
                 const productHTML = `
@@ -420,6 +485,17 @@
             productsList.innerHTML = '';
 
             const filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
+            
+            if (filteredProducts.length === 0) {
+                productsList.innerHTML = `
+                    <div class="empty-state">
+                        <i>🔍</i>
+                        <h3>Товары не найдены</h3>
+                        <p>Попробуйте выбрать другую категорию</p>
+                    </div>
+                `;
+                return;
+            }
             
             filteredProducts.forEach((product, index) => {
                 const originalIndex = products.findIndex(p => p.id === product.id);
@@ -482,6 +558,65 @@
             loadAdminProducts();
         }
 
+        function loadAdminProducts() {
+            const adminProductsContainer = document.getElementById('admin-products');
+            adminProductsContainer.innerHTML = '';
+            
+            if (products.length === 0) {
+                adminProductsContainer.innerHTML = '<p>Товаров пока нет</p>';
+                return;
+            }
+            
+            products.forEach((product, index) => {
+                const productHTML = `
+                    <div class="product">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="price">${product.price} руб.</div>
+                        <div class="admin-controls">
+                            <button class="admin-btn edit-btn" onclick="editProduct(${index})">✏️ Редактировать</button>
+                            <button class="admin-btn delete-btn" onclick="deleteProduct(${index})">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+                adminProductsContainer.innerHTML += productHTML;
+            });
+        }
+
+        function editProduct(index) {
+            const product = products[index];
+            
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-desc').value = product.description;
+            document.getElementById('product-image').value = product.image || '';
+            document.getElementById('product-category').value = product.category || '';
+            
+            // Удаляем старый товар
+            products.splice(index, 1);
+            localStorage.setItem('store_products', JSON.stringify(products));
+            
+            loadAdminProducts();
+            
+            tg.showPopup({
+                title: "✏️ Редактирование",
+                message: "Заполните форму и нажмите 'Добавить товар' для сохранения изменений"
+            });
+        }
+
+        function deleteProduct(index) {
+            if (confirm("Вы уверены, что хотите удалить этот товар?")) {
+                products.splice(index, 1);
+                localStorage.setItem('store_products', JSON.stringify(products));
+                loadAdminProducts();
+                
+                tg.showPopup({
+                    title: "✅ Удалено",
+                    message: "Товар успешно удален"
+                });
+            }
+        }
+
         function buyProduct(index) {
             const product = products[index];
             tg.showPopup({
@@ -525,7 +660,12 @@
 
             // Применяем настройки магазина
             if (settings.storeName) {
-                document.querySelector('h1').textContent = settings.storeName;
+                document.getElementById('store-title').textContent = settings.storeName;
+                document.getElementById('store-name').value = settings.storeName;
+            }
+            
+            if (settings.contactInfo) {
+                document.getElementById('contact-info').value = settings.contactInfo;
             }
         }
 
@@ -533,6 +673,9 @@
             settings.storeName = document.getElementById('store-name').value;
             settings.contactInfo = document.getElementById('contact-info').value;
             localStorage.setItem('store_settings', JSON.stringify(settings));
+            
+            // Обновляем название магазина
+            document.getElementById('store-title').textContent = settings.storeName;
             
             tg.showPopup({
                 title: "✅ Успех",
@@ -543,6 +686,7 @@
         // Загрузка при старте
         loadProducts();
         updateCategories();
+        loadAdminProducts();
     </script>
 </body>
 </html>
