@@ -10,6 +10,33 @@
             font-family: Arial, sans-serif;
             background: #f0f2f5;
             padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .tab {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .tab-btn.active {
+            background: #764ba2;
         }
         .product {
             background: white;
@@ -18,11 +45,17 @@
             margin: 15px 0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .product img {
+        .product-image {
             width: 100%;
-            border-radius: 8px;
             height: 150px;
+            border-radius: 8px;
             background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-bottom: 10px;
         }
         .price {
             color: #ff6b6b;
@@ -37,68 +70,215 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            width: 100%;
+        }
+        .admin-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .save-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h1>🛍️ Мой магазин</h1>
-    <p>Добро пожаловать! Выберите товары:</p>
-
-    <div class="product">
-        <div style="height: 150px; background: #667eea; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
-            📱 Фото телефона
-        </div>
-        <h3>Смартфон iPhone 15</h3>
-        <p>Новый флагманский смартфон с отличной камерой</p>
-        <div class="price">89 999 руб.</div>
-        <button class="buy-btn" onclick="buyProduct(1)">Купить</button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('shop')">🛍️ Магазин</button>
+        <button class="tab-btn" onclick="showTab('admin')">⚙️ Админка</button>
     </div>
 
-    <div class="product">
-        <div style="height: 150px; background: #764ba2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
-            🎧 Фото наушников
+    <!-- Магазин для покупателей -->
+    <div id="shop" class="tab active">
+        <h1>🛍️ Мой магазин</h1>
+        <p>Добро пожаловать! Выберите товары:</p>
+        <div id="products-list">
+            <!-- Товары будут здесь -->
         </div>
-        <h3>Наушники Wireless</h3>
-        <p>Беспроводные наушники с шумоподавлением</p>
-        <div class="price">4 999 руб.</div>
-        <button class="buy-btn" onclick="buyProduct(2)">Купить</button>
     </div>
 
-    <div class="product">
-        <div style="height: 150px; background: #ff6b6b; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
-            👕 Фото футболки
+    <!-- Админ-панель -->
+    <div id="admin" class="tab">
+        <h1>⚙️ Панель администратора</h1>
+        
+        <div class="form-group">
+            <input type="text" id="product-name" placeholder="Название товара">
         </div>
-        <h3>Футболка Premium</h3>
-        <p>Качественная хлопковая футболка</p>
-        <div class="price">1 999 руб.</div>
-        <button class="buy-btn" onclick="buyProduct(3)">Купить</button>
+        <div class="form-group">
+            <input type="number" id="product-price" placeholder="Цена (руб)">
+        </div>
+        <div class="form-group">
+            <textarea id="product-desc" placeholder="Описание товара" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <input type="text" id="product-image" placeholder="URL картинки (необязательно)">
+        </div>
+        
+        <button class="save-btn" onclick="addProduct()">➕ Добавить товар</button>
+        
+        <h3>Мои товары:</h3>
+        <div id="admin-products">
+            <!-- Список товаров для редактирования -->
+        </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        function buyProduct(productId) {
-            let productName = "";
-            let price = "";
+        // Загрузка товаров из localStorage
+        let products = JSON.parse(localStorage.getItem('store_products')) || [];
+
+        // Показ вкладок
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
             
-            if (productId === 1) {
-                productName = "Смартфон iPhone 15";
-                price = "89 999 руб.";
-            } else if (productId === 2) {
-                productName = "Наушники Wireless";
-                price = "4 999 руб.";
-            } else if (productId === 3) {
-                productName = "Футболка Premium";
-                price = "1 999 руб.";
+            if (tabName === 'shop') {
+                loadProducts();
+            } else if (tabName === 'admin') {
+                loadAdminProducts();
+            }
+        }
+
+        // Загрузка товаров в магазин
+        function loadProducts() {
+            const productsList = document.getElementById('products-list');
+            productsList.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const productHTML = `
+                    <div class="product">
+                        <div class="product-image">
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;">` : '🎁 Фото товара'}
+                        </div>
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="price">${product.price} руб.</div>
+                        <button class="buy-btn" onclick="buyProduct(${index})">Купить</button>
+                    </div>
+                `;
+                productsList.innerHTML += productHTML;
+            });
+        }
+
+        // Загрузка товаров в админке
+        function loadAdminProducts() {
+            const adminProducts = document.getElementById('admin-products');
+            adminProducts.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const adminHTML = `
+                    <div class="product">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="price">${product.price} руб.</div>
+                        <button class="admin-btn" onclick="editProduct(${index})">✏️ Редактировать</button>
+                        <button class="admin-btn" onclick="deleteProduct(${index})">🗑️ Удалить</button>
+                    </div>
+                `;
+                adminProducts.innerHTML += adminHTML;
+            });
+        }
+
+        // Добавление товара
+        function addProduct() {
+            const name = document.getElementById('product-name').value;
+            const price = document.getElementById('product-price').value;
+            const description = document.getElementById('product-desc').value;
+            const image = document.getElementById('product-image').value;
+
+            if (!name || !price || !description) {
+                tg.showPopup({
+                    title: "❌ Ошибка",
+                    message: "Заполните все поля!"
+                });
+                return;
             }
 
+            products.push({
+                name: name,
+                price: price,
+                description: description,
+                image: image
+            });
+
+            localStorage.setItem('store_products', JSON.stringify(products));
+            
+            // Очистка формы
+            document.getElementById('product-name').value = '';
+            document.getElementById('product-price').value = '';
+            document.getElementById('product-desc').value = '';
+            document.getElementById('product-image').value = '';
+
             tg.showPopup({
-                title: "✅ Товар добавлен",
-                message: productName + " - " + price + "\n\nСвяжитесь с нами для оформления заказа: @ваш_аккаунт",
+                title: "✅ Успех",
+                message: "Товар добавлен!"
+            });
+
+            loadAdminProducts();
+        }
+
+        // Редактирование товара
+        function editProduct(index) {
+            const product = products[index];
+            
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-desc').value = product.description;
+            document.getElementById('product-image').value = product.image || '';
+
+            // Удаляем старый товар
+            products.splice(index, 1);
+            localStorage.setItem('store_products', JSON.stringify(products));
+            loadAdminProducts();
+        }
+
+        // Удаление товара
+        function deleteProduct(index) {
+            if (confirm("Удалить этот товар?")) {
+                products.splice(index, 1);
+                localStorage.setItem('store_products', JSON.stringify(products));
+                loadAdminProducts();
+                loadProducts();
+            }
+        }
+
+        // Покупка товара
+        function buyProduct(index) {
+            const product = products[index];
+            tg.showPopup({
+                title: "✅ Товар добавлен в корзину",
+                message: `${product.name} - ${product.price} руб.\n\nСвяжитесь с нами для оформления заказа: @ваш_аккаунт`,
                 buttons: [{type: "ok", text: "Понятно"}]
             });
         }
+
+        // Загрузка при старте
+        loadProducts();
     </script>
 </body>
 </html>
