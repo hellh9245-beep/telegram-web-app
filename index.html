@@ -6,100 +6,263 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #ff6b6b;
+            --success-color: #4caf50;
+            --background-color: #f0f2f5;
+            --text-color: #333;
+            --card-bg: #ffffff;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background-color);
             padding: 20px;
             max-width: 600px;
             margin: 0 auto;
+            color: var(--text-color);
+            transition: all 0.3s ease;
         }
+
+        .theme-dark {
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --primary-color: #7c93ff;
+            --secondary-color: #9b6dff;
+        }
+
+        .theme-modern {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --accent-color: #45b7d1;
+            --background-color: #f8f9fa;
+        }
+
         .tab {
             display: none;
+            animation: fadeIn 0.3s ease;
         }
+
         .active {
             display: block;
         }
+
         .tabs {
             display: flex;
             margin-bottom: 20px;
-            background: white;
-            border-radius: 10px;
+            background: var(--card-bg);
+            border-radius: 15px;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
+
         .tab-btn {
             flex: 1;
             padding: 15px;
             border: none;
-            background: #667eea;
+            background: var(--primary-color);
             color: white;
             cursor: pointer;
             font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
+
+        .tab-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
         .tab-btn.active {
-            background: #764ba2;
+            background: var(--secondary-color);
         }
+
         .product {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
+        .product:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
         .product-image {
             width: 100%;
-            height: 150px;
-            border-radius: 8px;
-            background: #667eea;
+            height: 200px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 24px;
+            margin-bottom: 15px;
+            overflow: hidden;
         }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .price {
-            color: #ff6b6b;
+            color: var(--accent-color);
             font-weight: bold;
-            font-size: 18px;
-            margin: 10px 0;
+            font-size: 20px;
+            margin: 15px 0;
         }
+
         .buy-btn {
-            background: #667eea;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 25px;
+            border-radius: 25px;
             cursor: pointer;
             width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
+
+        .buy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
         .admin-btn {
-            background: #ff6b6b;
+            background: var(--accent-color);
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 5px;
+            border-radius: 20px;
             cursor: pointer;
             margin: 5px;
+            transition: all 0.3s ease;
         }
+
+        .admin-btn:hover {
+            transform: scale(1.05);
+        }
+
         .form-group {
-            margin: 10px 0;
+            margin: 15px 0;
         }
-        input, textarea {
+
+        input, textarea, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
             font-size: 16px;
+            transition: border-color 0.3s ease;
         }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
         .save-btn {
-            background: #4caf50;
+            background: var(--success-color);
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
+            padding: 15px 25px;
+            border-radius: 25px;
             cursor: pointer;
             width: 100%;
             font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .theme-btn {
+            padding: 10px 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .settings-panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ddd;
+        }
+
+        .animated {
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 8px 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn.active {
+            background: var(--primary-color);
+            color: white;
         }
     </style>
 </head>
@@ -107,12 +270,18 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="showTab('shop')">🛍️ Магазин</button>
         <button class="tab-btn" onclick="showTab('admin')">⚙️ Админка</button>
+        <button class="tab-btn" onclick="showTab('settings')">🎨 Дизайн</button>
     </div>
 
     <!-- Магазин для покупателей -->
     <div id="shop" class="tab active">
         <h1>🛍️ Мой магазин</h1>
-        <p>Добро пожаловать! Выберите товары:</p>
+        
+        <div class="category-filter" id="category-filter">
+            <button class="category-btn active" onclick="filterProducts('all')">Все</button>
+            <!-- Категории будут добавляться здесь -->
+        </div>
+        
         <div id="products-list">
             <!-- Товары будут здесь -->
         </div>
@@ -132,7 +301,10 @@
             <textarea id="product-desc" placeholder="Описание товара" rows="3"></textarea>
         </div>
         <div class="form-group">
-            <input type="text" id="product-image" placeholder="URL картинки (необязательно)">
+            <input type="text" id="product-image" placeholder="URL картинки">
+        </div>
+        <div class="form-group">
+            <input type="text" id="product-category" placeholder="Категория (например: электроника)">
         </div>
         
         <button class="save-btn" onclick="addProduct()">➕ Добавить товар</button>
@@ -143,14 +315,54 @@
         </div>
     </div>
 
+    <!-- Настройки дизайна -->
+    <div id="settings" class="tab">
+        <h1>🎨 Настройки дизайна</h1>
+        
+        <div class="settings-panel">
+            <h3>Выберите тему:</h3>
+            <div class="theme-selector">
+                <button class="theme-btn active" onclick="changeTheme('default')">Стандартная</button>
+                <button class="theme-btn" onclick="changeTheme('dark')">Тёмная</button>
+                <button class="theme-btn" onclick="changeTheme('modern')">Модерн</button>
+            </div>
+
+            <h3>Цветовая схема:</h3>
+            <div class="color-picker">
+                <div class="color-option" style="background: #667eea;" onclick="changeColorScheme('#667eea', '#764ba2')"></div>
+                <div class="color-option" style="background: #ff6b6b;" onclick="changeColorScheme('#ff6b6b', '#45b7d1')"></div>
+                <div class="color-option" style="background: #4caf50;" onclick="changeColorScheme('#4caf50', '#8bc34a')"></div>
+                <div class="color-option" style="background: #ff9800;" onclick="changeColorScheme('#ff9800', '#ff5722')"></div>
+                <div class="color-option" style="background: #9c27b0;" onclick="changeColorScheme('#9c27b0', '#673ab7')"></div>
+            </div>
+
+            <h3>Настройки магазина:</h3>
+            <div class="form-group">
+                <input type="text" id="store-name" placeholder="Название магазина" value="Мой магазин">
+            </div>
+            <div class="form-group">
+                <input type="text" id="contact-info" placeholder="Контактная информация" value="@ваш_username">
+            </div>
+            <button class="save-btn" onclick="saveSettings()">💾 Сохранить настройки</button>
+        </div>
+    </div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Загрузка товаров из localStorage
+        // Загрузка данных
         let products = JSON.parse(localStorage.getItem('store_products')) || [];
+        let settings = JSON.parse(localStorage.getItem('store_settings')) || {
+            theme: 'default',
+            colors: { primary: '#667eea', secondary: '#764ba2' },
+            storeName: 'Мой магазин',
+            contactInfo: '@ваш_username'
+        };
 
-        // Показ вкладок
+        // Применение настроек при загрузке
+        applySettings();
+
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -159,71 +371,98 @@
             
             if (tabName === 'shop') {
                 loadProducts();
+                updateCategories();
             } else if (tabName === 'admin') {
                 loadAdminProducts();
             }
         }
 
-        // Загрузка товаров в магазин
         function loadProducts() {
             const productsList = document.getElementById('products-list');
             productsList.innerHTML = '';
 
             products.forEach((product, index) => {
                 const productHTML = `
-                    <div class="product">
+                    <div class="product animated">
                         <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;">` : '🎁 Фото товара'}
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
                         </div>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
+                        ${product.category ? `<span style="background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">${product.category}</span>` : ''}
                         <div class="price">${product.price} руб.</div>
-                        <button class="buy-btn" onclick="buyProduct(${index})">Купить</button>
+                        <button class="buy-btn" onclick="buyProduct(${index})">
+                            🛒 Купить сейчас
+                        </button>
                     </div>
                 `;
                 productsList.innerHTML += productHTML;
             });
         }
 
-        // Загрузка товаров в админке
-        function loadAdminProducts() {
-            const adminProducts = document.getElementById('admin-products');
-            adminProducts.innerHTML = '';
+        function updateCategories() {
+            const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+            const filterContainer = document.getElementById('category-filter');
+            
+            let categoriesHTML = '<button class="category-btn active" onclick="filterProducts(\'all\')">Все</button>';
+            categories.forEach(category => {
+                categoriesHTML += `<button class="category-btn" onclick="filterProducts('${category}')">${category}</button>`;
+            });
+            
+            filterContainer.innerHTML = categoriesHTML;
+        }
 
-            products.forEach((product, index) => {
-                const adminHTML = `
-                    <div class="product">
+        function filterProducts(category) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const productsList = document.getElementById('products-list');
+            productsList.innerHTML = '';
+
+            const filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
+            
+            filteredProducts.forEach((product, index) => {
+                const originalIndex = products.findIndex(p => p.id === product.id);
+                const productHTML = `
+                    <div class="product animated">
+                        <div class="product-image">
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
+                        </div>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
+                        ${product.category ? `<span style="background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">${product.category}</span>` : ''}
                         <div class="price">${product.price} руб.</div>
-                        <button class="admin-btn" onclick="editProduct(${index})">✏️ Редактировать</button>
-                        <button class="admin-btn" onclick="deleteProduct(${index})">🗑️ Удалить</button>
+                        <button class="buy-btn" onclick="buyProduct(${originalIndex})">
+                            🛒 Купить сейчас
+                        </button>
                     </div>
                 `;
-                adminProducts.innerHTML += adminHTML;
+                productsList.innerHTML += productHTML;
             });
         }
 
-        // Добавление товара
         function addProduct() {
             const name = document.getElementById('product-name').value;
             const price = document.getElementById('product-price').value;
             const description = document.getElementById('product-desc').value;
             const image = document.getElementById('product-image').value;
+            const category = document.getElementById('product-category').value;
 
             if (!name || !price || !description) {
                 tg.showPopup({
                     title: "❌ Ошибка",
-                    message: "Заполните все поля!"
+                    message: "Заполните обязательные поля!"
                 });
                 return;
             }
 
             products.push({
+                id: Date.now(),
                 name: name,
                 price: price,
                 description: description,
-                image: image
+                image: image,
+                category: category
             });
 
             localStorage.setItem('store_products', JSON.stringify(products));
@@ -233,6 +472,7 @@
             document.getElementById('product-price').value = '';
             document.getElementById('product-desc').value = '';
             document.getElementById('product-image').value = '';
+            document.getElementById('product-category').value = '';
 
             tg.showPopup({
                 title: "✅ Успех",
@@ -242,43 +482,67 @@
             loadAdminProducts();
         }
 
-        // Редактирование товара
-        function editProduct(index) {
-            const product = products[index];
-            
-            document.getElementById('product-name').value = product.name;
-            document.getElementById('product-price').value = product.price;
-            document.getElementById('product-desc').value = product.description;
-            document.getElementById('product-image').value = product.image || '';
-
-            // Удаляем старый товар
-            products.splice(index, 1);
-            localStorage.setItem('store_products', JSON.stringify(products));
-            loadAdminProducts();
-        }
-
-        // Удаление товара
-        function deleteProduct(index) {
-            if (confirm("Удалить этот товар?")) {
-                products.splice(index, 1);
-                localStorage.setItem('store_products', JSON.stringify(products));
-                loadAdminProducts();
-                loadProducts();
-            }
-        }
-
-        // Покупка товара
         function buyProduct(index) {
             const product = products[index];
             tg.showPopup({
-                title: "✅ Товар добавлен в корзину",
-                message: `${product.name} - ${product.price} руб.\n\nСвяжитесь с нами для оформления заказа: @ваш_аккаунт`,
+                title: "✅ Добавлено в корзину",
+                message: `${product.name} - ${product.price} руб.\n\nСвяжитесь с нами: ${settings.contactInfo}`,
                 buttons: [{type: "ok", text: "Понятно"}]
+            });
+        }
+
+        function changeTheme(themeName) {
+            document.body.className = '';
+            if (themeName !== 'default') {
+                document.body.classList.add('theme-' + themeName);
+            }
+            settings.theme = themeName;
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+            
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function changeColorScheme(primary, secondary) {
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--secondary-color', secondary);
+            settings.colors = { primary, secondary };
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+        }
+
+        function applySettings() {
+            // Применяем тему
+            document.body.className = '';
+            if (settings.theme !== 'default') {
+                document.body.classList.add('theme-' + settings.theme);
+            }
+
+            // Применяем цвета
+            if (settings.colors) {
+                document.documentElement.style.setProperty('--primary-color', settings.colors.primary);
+                document.documentElement.style.setProperty('--secondary-color', settings.colors.secondary);
+            }
+
+            // Применяем настройки магазина
+            if (settings.storeName) {
+                document.querySelector('h1').textContent = settings.storeName;
+            }
+        }
+
+        function saveSettings() {
+            settings.storeName = document.getElementById('store-name').value;
+            settings.contactInfo = document.getElementById('contact-info').value;
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+            
+            tg.showPopup({
+                title: "✅ Успех",
+                message: "Настройки сохранены!"
             });
         }
 
         // Загрузка при старте
         loadProducts();
+        updateCategories();
     </script>
 </body>
 </html>
