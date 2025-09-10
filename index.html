@@ -6,6 +6,7 @@
     <title>Telegram Mini App Store</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* Ваши стили остаются без изменений */
         :root {
             --primary-color: #667eea;
             --secondary-color: #764ba2;
@@ -414,6 +415,19 @@
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -423,8 +437,8 @@
             <div class="user-info">
                 <div class="user-avatar" id="user-avatar">👤</div>
                 <div class="user-details">
-                    <div id="user-name">Пользователь</div>
-                    <div id="user-id">ID: 000000</div>
+                    <div id="user-name">Загрузка...</div>
+                    <div id="user-id">ID: ...</div>
                 </div>
             </div>
         </header>
@@ -545,19 +559,62 @@
 
     <script>
         let tg = window.Telegram.WebApp;
+        let user = null;
+        let userKey = null;
+        
+        // Инициализация Telegram Web App
+        tg.ready();
         tg.expand();
         
-        // Получаем данные пользователя
-        const user = tg.initDataUnsafe?.user || {
-            id: Math.floor(Math.random() * 1000000),
-            first_name: "Пользователь",
-            last_name: "",
-            username: "user"
-        };
+        // Ждем полной инициализации Telegram Web App
+        tg.onEvent('viewportChanged', function() {
+            initApp();
+        });
         
-        // Генерируем уникальный ключ для пользователя
-        const userKey = `user_${user.id}`;
+        // Если viewportChanged не сработал, инициализируем через небольшой таймаут
+        setTimeout(initApp, 1000);
         
+        function initApp() {
+            // Получаем данные пользователя
+            user = tg.initDataUnsafe?.user;
+            
+            if (!user) {
+                // Если данные пользователя недоступны, создаем временного пользователя
+                user = {
+                    id: Math.floor(Math.random() * 1000000),
+                    first_name: "Гость",
+                    last_name: "",
+                    username: "guest"
+                };
+                
+                // Показываем сообщение, что данные пользователя недоступны
+                tg.showPopup({
+                    title: "Информация",
+                    message: "Данные пользователя недоступны. Используется гостевой режим."
+                });
+            }
+            
+            // Генерируем уникальный ключ для пользователя
+            userKey = `user_${user.id}`;
+            
+            // Обновляем информацию о пользователе
+            document.getElementById('user-name').textContent = `${user.first_name} ${user.last_name || ''}`.trim();
+            document.getElementById('user-id').textContent = `ID: ${user.id}`;
+            document.getElementById('user-avatar').textContent = user.first_name[0] || '👤';
+            
+            // Загружаем данные
+            loadData();
+            
+            // Применяем настройки
+            applySettings();
+            
+            // Обновляем счетчик посетителей
+            updateVisitorsCount();
+            
+            // Загружаем первую вкладку
+            showTab('shop');
+        }
+
         // Предустановленные товары по умолчанию
         const defaultProducts = [
             {
@@ -586,40 +643,31 @@
             }
         ];
 
-        // Загрузка данных
-        let products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
-        let settings = JSON.parse(localStorage.getItem('store_settings')) || {
-            theme: 'default',
-            colors: { primary: '#667eea', secondary: '#764ba2' },
-            storeName: 'Мой магазин',
-            contactInfo: '@ваш_username'
-        };
-        
-        // Загрузка данных пользователя
-        let userData = JSON.parse(localStorage.getItem(userKey)) || {
-            cart: [],
-            orders: []
-        };
+        let products = [];
+        let settings = {};
+        let userData = {};
 
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            // Обновляем счетчики
+        function loadData() {
+            // Загрузка товаров
+            products = JSON.parse(localStorage.getItem('store_products')) || defaultProducts;
+            
+            // Загрузка настроек
+            settings = JSON.parse(localStorage.getItem('store_settings')) || {
+                theme: 'default',
+                colors: { primary: '#667eea', secondary: '#764ba2' },
+                storeName: 'Мой магазин',
+                contactInfo: '@ваш_username'
+            };
+            
+            // Загрузка данных пользователя
+            userData = JSON.parse(localStorage.getItem(userKey)) || {
+                cart: [],
+                orders: []
+            };
+            
+            // Обновляем счетчик товаров
             document.getElementById('products-count').textContent = products.length;
-            
-            // Обновляем информацию о пользователе
-            document.getElementById('user-name').textContent = `${user.first_name} ${user.last_name || ''}`.trim();
-            document.getElementById('user-id').textContent = `ID: ${user.id}`;
-            document.getElementById('user-avatar').textContent = user.first_name[0] || '👤';
-            
-            // Применение настроек при загрузке
-            applySettings();
-            
-            // Обновляем счетчик посетителей
-            updateVisitorsCount();
-            
-            // Загружаем первую вкладку
-            showTab('shop');
-        });
+        }
 
         function showTab(tabName) {
             // Скрыть все вкладки и убрать активный класс со всех кнопок
@@ -641,7 +689,6 @@
             } else if (tabName === 'admin') {
                 loadAdminProducts();
             }
-            // Для вкладки settings не требуется дополнительная загрузка
         }
 
         function loadProducts() {
@@ -663,7 +710,7 @@
                 const productHTML = `
                     <div class="product animated">
                         <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
+                            ${getProductImageHTML(product)}
                         </div>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
@@ -676,6 +723,20 @@
                 `;
                 productsList.innerHTML += productHTML;
             });
+        }
+
+        function getProductImageHTML(product) {
+            if (!product.image) {
+                return '<div class="image-placeholder">🎁<br>Нет фото</div>';
+            }
+            
+            // Проверяем, является ли изображение допустимым URL
+            try {
+                new URL(product.image);
+                return `<img src="${product.image}" alt="${product.name}" onerror="this.parentNode.innerHTML='<div class=\\'image-placeholder\\'>❌<br>Ошибка загрузки</div>'">`;
+            } catch (e) {
+                return '<div class="image-placeholder">🔗<br>Неверный URL</div>';
+            }
         }
 
         function updateCategories() {
@@ -715,7 +776,7 @@
                 const productHTML = `
                     <div class="product animated">
                         <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🎁 Фото товара'}
+                            ${getProductImageHTML(product)}
                         </div>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
@@ -768,7 +829,7 @@
                 return;
             }
             
-            document.getElementById('cart-total').style.display = 'block';
+            document.getElementById('cart-total').style.display = 'flex';
             
             let totalPrice = 0;
             
@@ -779,7 +840,7 @@
                 const cartItemHTML = `
                     <div class="cart-item">
                         <div class="cart-item-image">
-                            ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '🎁'}
+                            ${getProductImageHTML(item)}
                         </div>
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
@@ -888,7 +949,7 @@
 
         function addProduct() {
             const name = document.getElementById('product-name').value;
-            const price = document.getElementById('product-price').value;
+            const price = parseFloat(document.getElementById('product-price').value);
             const description = document.getElementById('product-desc').value;
             const image = document.getElementById('product-image').value;
             const category = document.getElementById('product-category').value;
@@ -1017,46 +1078,4 @@
                 document.getElementById('store-name').value = settings.storeName;
             }
             
-            // Применение контактной информации
-            if (settings.contactInfo) {
-                document.getElementById('contact-info').value = settings.contactInfo;
-            }
-        }
-
-        function changeTheme(theme) {
-            settings.theme = theme;
-            localStorage.setItem('store_settings', JSON.stringify(settings));
-            applySettings();
-            
-            // Обновляем активные кнопки тем
-            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.theme-btn[onclick="changeTheme('${theme}')"]`).classList.add('active');
-        }
-
-        function changeColorScheme(primary, secondary) {
-            settings.colors = { primary, secondary };
-            localStorage.setItem('store_settings', JSON.stringify(settings));
-            applySettings();
-        }
-
-        function saveSettings() {
-            settings.storeName = document.getElementById('store-name').value;
-            settings.contactInfo = document.getElementById('contact-info').value;
-            localStorage.setItem('store_settings', JSON.stringify(settings));
-            
-            tg.showPopup({
-                title: "✅ Настройки сохранены",
-                message: "Настройки магазина успешно обновлены"
-            });
-            
-            applySettings();
-        }
-
-        function updateVisitorsCount() {
-            // Простая имитация счетчика посетителей
-            const visitors = Math.floor(Math.random() * 100) + 1;
-            document.getElementById('visitors-count').textContent = visitors;
-        }
-    </script>
-</body>
-</html>
+            // Применение конта
